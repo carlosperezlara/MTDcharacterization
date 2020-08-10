@@ -15,23 +15,6 @@ void primeit(
   return;
 }
 
-void primeit(
-	     TSpline *sp, double x[MAX], double y[MAX],
-	     double xp[MAX], double yp[MAX],
-	     int n, bool norm=false) {
-  for(int i=1; i!=n-1; ++i) {
-    double pre = 0.5*( x[i] + x[i-1] );
-    double pos = 0.5*( x[i+1] + x[i] );
-    double den = pos-pre;//x[i+1] - x[i-1];
-    double num = sp->Eval(pos) - sp->Eval(pre);
-    xp[i-1] = x[i];
-    yp[i-1] = num/den;
-    if(norm) yp[i-1] /= y[i];
-    //std::cout << x[i] << " " << y[i] << "|" << xp[i-1] << " " << yp[i-1] << std::endl;
-  }
-  return;
-}
-
 double threshold(
 		 int xstart, int xstop,
 		 double y[MAX], double thr,
@@ -109,17 +92,16 @@ double floor(
 //int bvfinder(TString file="SiPM-HDR2-2_Chdirect_iLED-1-20200729-1323.csv",
 //int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1054.csv", //20.8C someone turn on the lights =(
 //int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1110.csv", //20.8C looks fine
-//int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1122.csv", //20.8C looks fine too
-int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1128.csv", //20.8C looks fine (no lights)
+int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1122.csv", //20.8C looks fine too
+//int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1128.csv", //20.8C looks fine (no lights)
 //int bvfinder(TString file="20200804_20.8C/HDR2-_Ch6_iLED-1-20200804-1058.csv", //20.8C someone turn on the lights =(
 //int bvfinder(TString file="20200804_20.8C/HDR2-_Ch6_iLED-1-20200804-1113.csv", //20.8C looks fine
 //int bvfinder(TString file="20200804_20.8C/HDR2-_Ch6_iLED-1-20200804-1118.csv", //20.8C looks fine too
 //int bvfinder(TString file="20200804_20.8C/HDR2-_Ch6_iLED-1-20200804-1131.csv", //20.8C few outliers (no lights)
 //int bvfinder(TString file="20200804_20.8C/HDR2-_Ch6_iLED-1-20200804-1135.csv", //20.8C looks fine (no lights)
-	     double merge=0.1, double xdiff=1,
-	     //double merge=0.05, double xdiff=0,
-	     //double merge=0.0005, double xdiff=0,
-	     double thrPrime=1.0 ) {
+	     //double merge=0.1, double xdiff=1,
+	     double merge=0.05, double xdiff=0,
+	     double thrPrime=0.5 ) {
   gStyle->SetOptStat(0);
   int n=0;
   double volt[MAX];
@@ -179,19 +161,8 @@ int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1128.csv", /
   
   //primeit(volt, curr, volt1,curr1,n,true);
   //primeit(volt1,curr1,volt2,curr2,n-2);
-
-  // create graphical objects
-  TGraph  *gr0  = new TGraph(n,volt,curr);
-  TGraph  *gr00 = new TGraph(nn,volt0,curr0);
-  TSpline *sp00 = new TSpline3("sp00",gr00);
-  primeit(sp00,volt0,curr0,volt1,curr1,nn,true);
-  TGraph  *gr1  = new TGraph(nn-2,volt1,curr1);
-  TSpline *sp1  = new TSpline3("sp1",gr1);
-  primeit(sp1,volt1,curr1,volt2,curr2,nn-2);
-  TGraph  *gr2  = new TGraph(nn-4,volt2,curr2);
-  TSpline *sp2  = new TSpline3("sp2",gr2);
-  TGraph  *gr3  = new TGraph(nn,volt0,sqrtc);
-  
+  primeit(volt0,curr0,volt1,curr1,nn,true);
+  primeit(volt1,curr1,volt2,curr2,nn-2);
   
   int skipfirst = 10;
   // finding first peak of primed
@@ -205,7 +176,13 @@ int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1128.csv", /
   xend = falling(xpea,nn-1,curr1,0.68*thr);
   std::cout << "Found potential range from " << volt1[xini] << " and " << volt1[xend] << std::endl;
 
-  
+  // create graphical objects
+  TGraph *gr0 = new TGraph(n,volt,curr);
+  TGraph *gr00 = new TGraph(nn,volt0,curr0);
+  TGraph *gr1 = new TGraph(nn-2,volt1,curr1);
+  TGraph *gr2 = new TGraph(nn-4,volt2,curr2);
+  TGraph *gr3 = new TGraph(nn,volt0,sqrtc);
+
   // estimating inflection point from primedTwo
   double mid = 0.5*(volt1[xend]+volt1[xini]);
   //TF1 *fitStraight = new TF1("fitStraight", Form("[0]+[1]*(x-%f)+[2]*pow(x-%f,3)",mid,mid), volt1[xini], volt1[xend] );
@@ -254,7 +231,6 @@ int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1128.csv", /
   gr0->Draw("*SAME");
   gr0->SetMarkerColor(kGreen-3);
   gr00->Draw("*SAME");
-  sp00->Draw("SAME");
   gr0->GetYaxis()->SetTitle("I (nA)");
   gr0->GetXaxis()->SetTitle("Bias (V)");
   tex->SetTextSize(0.03);
@@ -266,7 +242,6 @@ int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1128.csv", /
   main1->Divide(2,1);
   main1->cd(1);
   gr1->Draw("A*");
-  sp1->Draw("SAME");
   lin->DrawLine(volt1[xini],-1,volt1[xini],+10);
   lin->DrawLine(volt1[xend],-1,volt1[xend],+10);
   gr1->GetXaxis()->SetRangeUser( volt1[xini]-2, volt1[xend]+2);
@@ -277,13 +252,13 @@ int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1128.csv", /
   gr2->GetXaxis()->SetRangeUser( volt1[xini]-2, volt1[xend]+2);
   tex->SetTextColor(kRed-3);
   tex->DrawText(estimator1,0,Form("%.2f",estimator1));
+
   gr1->GetYaxis()->SetTitle("(dI / dV)  /  I");
   gr1->GetXaxis()->SetTitle("Bias (V)");
   gr2->GetYaxis()->SetTitle("(d^{2} I / dV^{2})  /  I");
   gr2->GetXaxis()->SetTitle("Bias (V)");
   gr1->SetTitle("");
   gr2->SetTitle("");
-  sp2->Draw("SAME");
   main1->SaveAs( Form("%s_Fig1.pdf",outfilestring.Data()), "pdf" );
   
   TCanvas *main2 = new TCanvas();

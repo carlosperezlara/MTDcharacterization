@@ -150,23 +150,8 @@ int compress(int n, double x[MAX], double y[MAX], double xx[MAX], double yy[MAX]
 }
 
 
-//int bvfinder(TString file="SiPM-X1_Chdirect_iLED-1-20200720-1454.csv"
-//int bvfinder(TString file="SiPM-X1_Chdirect_iLED-1-20200723-1030.csv",
-//int bvfinder(TString file="SiPM-HDR2_Chdirect_ambient-20200727-1510.csv",
-//int bvfinder(TString file="SiPM-HDR2_Chdirect_iLED-1-20200727-1517.csv",
-//int bvfinder(TString file="SiPM-HDR2_Chdirect_iLED-1-20200729-0948.csv",
-//int bvfinder(TString file="SiPM-HDR2_Chdirect_ambient-20200727-1510.csv",
-//int bvfinder(TString file="SiPM-HDR2-2_Chdirect_iLED-1-20200729-1323.csv",
-//int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1054.csv", //20.8C someone turn on the lights =(
-//int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1110.csv", //20.8C looks fine
-//int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1122.csv", //20.8C looks fine too
 int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1128.csv", //20.8C looks fine (no lights)
-//int bvfinder(TString file="20200804_20.8C/HDR2-_Ch6_iLED-1-20200804-1058.csv", //20.8C someone turn on the lights =(
-//int bvfinder(TString file="20200804_20.8C/HDR2-_Ch6_iLED-1-20200804-1113.csv", //20.8C looks fine
-//int bvfinder(TString file="20200804_20.8C/HDR2-_Ch6_iLED-1-20200804-1118.csv", //20.8C looks fine too
-//int bvfinder(TString file="20200804_20.8C/HDR2-_Ch6_iLED-1-20200804-1131.csv", //20.8C few outliers (no lights)
-//int bvfinder(TString file="20200804_20.8C/HDR2-_Ch6_iLED-1-20200804-1135.csv", //20.8C looks fine (no lights)
-	     double merge=0.0005, double thrPrime=0.5, double rangeend=-1, double init3 = -1 ) {
+	     double merge=0.0005, double thrPrime=0.5, double rangeend=-1, bool gausInstead = false ) {
   gStyle->SetOptStat(0);
   int n=0;
   double volt[MAX]; //original
@@ -293,7 +278,11 @@ int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1128.csv", /
   for(int ii=xini; ii<xpea-2; ++ii) {
     for(int jj=xend; jj>xpea+2; --jj) {
       //cout << "Landau fit: " << ii << " " << jj << std::endl;
-      fitLandau[nfit1] = new TF1(Form("fitLandau%d",nfit1),"[0]*TMath::Landau(x,[1],[2])", volt1[ii], volt1[jj]);
+      if(gausInstead) {
+	fitLandau[nfit1] = new TF1(Form("fitGaus%d",nfit1),"[0]*TMath::Gaus(x,[1],[2])", volt1[ii], volt1[jj]);
+      } else {
+	fitLandau[nfit1] = new TF1(Form("fitLandau%d",nfit1),"[0]*TMath::Landau(x,[1],[2])", volt1[ii], volt1[jj]);
+      }
       fitLandau[nfit1]->SetParameter(1,volt1[xpea]); fitLandau[nfit1]->SetParLimits(1,volt1[ii],volt1[jj]);
       fitLandau[nfit1]->SetParameter(2,1);    fitLandau[nfit1]->SetParLimits(2,0.1,3);
       fitLandau[nfit1]->SetLineWidth(1);

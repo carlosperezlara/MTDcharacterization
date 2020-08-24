@@ -17,7 +17,7 @@ void readfile(TString file,
   }
 }
 
-int temperatureTrend() {
+int temperatureTrendNewSiPM1() {
   double n30_1_landauMean, n30_1_landauStd, n30_1_straightMean, n30_1_straightStd, n30_1_linearMean, n30_1_linearStd;
   readfile("20200811_n30C/HDR2-_Chdirect_iLED-1-20200811-1303.csv",
 	   n30_1_landauMean,  n30_1_landauStd,

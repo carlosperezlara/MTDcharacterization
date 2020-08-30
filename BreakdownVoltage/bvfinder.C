@@ -225,7 +225,7 @@ int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1128.csv", /
   
   // finding first peak of primed
   int skipfirst = indexAt15;
-  int xini, xini3, xend, xpea;
+  int xini, xend, xpea;
   /////////////////////
   if(rangeend<0) {
     std::cout << "*** Trying to get the range automatically ***" << std::endl;
@@ -301,10 +301,6 @@ int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1128.csv", /
   cout << "* Number of Landau fits " << nfit1 << std::endl;
   cout << "  MPV mean " << landauMean << " error " << landauStd << std::endl;
 
-  // stablishing xmin3 at (inflection point -0.5) and making sure it is at least 6 points below limit
-  xini3 = findLowEdge(landauMean-0.5,volt1,nn-2);
-  if(nn-2-xini3<6) xini3 = nn-2-6;
-  //exit(0);
   
   // second: find peak position for second-primed and start range there for straight fit
   TF1 *fitStraight[100];
@@ -340,12 +336,22 @@ int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1128.csv", /
   //exit(0);
   
   // third: estimating crossing point with zero from sqrt(I)
+  //
+  // stablishing xmin3 at (inflection point -0.2) and making sure it is at least 6 points below limit
+  int xini3, xend3;
+  xini3 = findLowEdge(landauMean-0.2,volt1,nn-2);
+  if(nn-2-xini3<6) xini3 = nn-2-6;
+  // stablishing xend3 at (inflection point +2.0) and making sure it is at least 6 points below limit
+  xend3 = findLowEdge(landauMean+2.0,volt1,nn-2);
+  if(nn-2-xend3<6) xend3 = nn-2-6;
+  std::cout << " xini3 " << xini3 << ": " << volt1[xini3] << " xend3 " << xend3 << ": " << volt1[xend3] << std::endl;
+  //
   TF1 *fitLinear[100];
   int nfit3 = 0;
   sx = sxx = 0;
-  int xcent = 0.5*(xini3+nn-2);
+  int xcent = 0.5*(xini3+xend3);
   for(int ii=xini3; ii<xcent-2; ++ii) {
-    for(int jj=nn-2; jj>xcent+2; --jj) {
+    for(int jj=xend3; jj>xcent+2; --jj) {
       fitLinear[nfit3] = new TF1(Form("fitLinear%d",nfit3),"[0]+[1]*x", 30/*volt1[ii]*/, volt1[jj]);
       fitLinear[nfit3]->SetLineWidth(1);
       fitLinear[nfit3]->SetLineColor(kGreen-3);
@@ -377,14 +383,14 @@ int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1128.csv", /
   // display all
   double max0, max1, max2, max3;
   double min0, min1, min2, min3;
-  peak(0,nn,curr0, max0);
+  peak( 0,nn,curr0,max0);
   floor(0,nn,curr0,min0);
-  peak(xini,xend,curr1, max1);
+  peak( xini,xend,curr1,max1);
   floor(xini,xend,curr1,min1);
-  peak(xini,xend,curr2, max2);
+  peak( xini,xend,curr2,max2);
   floor(xini,xend,curr2,min2);  
-  peak(0,nn,sqrtc,max3);
-  floor(2,nn,curr0,min3);
+  peak( 0,xend3,sqrtc,max3);
+  floor(2,xend3,curr0,min3);
 
   TLine *lin = new TLine();
   lin->SetLineColor(kRed-3);
@@ -422,7 +428,7 @@ int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1128.csv", /
   lin->DrawLine(volt1[xend],-1,volt1[xend],+10);
   gr1->GetXaxis()->SetRangeUser( volt1[xini]-2, volt1[xend]+2);
   tex->SetTextColor(kCyan-3);
-  tex->DrawTextNDC(0.15,0.8,Form("%.1f (%.1f)",landauMean,landauStd));
+  tex->DrawTextNDC(0.15,0.8,Form("%.2f (%.2f)",landauMean,landauStd));
   main1->cd(2);
   gr2->Draw("A*"); 
   gr1->GetYaxis()->SetRangeUser(min2,max2);
@@ -433,7 +439,7 @@ int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1128.csv", /
   gr2->Draw("*SAME");
   gr2->GetXaxis()->SetRangeUser( volt1[xini]-2, volt1[xend]+2);
   tex->SetTextColor(kOrange-3);
-  tex->DrawTextNDC(0.15,0.8,Form("%.1f (%.1f)",straightMean,straightStd));
+  tex->DrawTextNDC(0.15,0.8,Form("%.2f (%.2f)",straightMean,straightStd));
   //gr1->GetYaxis()->SetTitle("(dI / dV)  /  I");
   gr1->GetYaxis()->SetTitle("d/dv   Ln I");
   gr1->GetXaxis()->SetTitle("Bias (V)");
@@ -444,7 +450,7 @@ int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1128.csv", /
   gr2->SetTitle("");
   sp2->Draw("SAME");
   main1->cd(3);
-  TH2D *axis3 = new TH2D("axis3",";Bias (V);#sqrt{ I (#muA) }", 100, volt1[xini]-3, volt1[xend]+3,10000,0,max3);
+  TH2D *axis3 = new TH2D("axis3",";Bias (V);#sqrt{ I (#muA) }", 100, volt1[xini]-3, volt1[xend3],10000,0,max3);
   axis3->Draw("");
   axis3->GetYaxis()->SetNdivisions(505);
   axis3->GetYaxis()->SetTitleOffset(1.2);  
@@ -452,9 +458,10 @@ int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1128.csv", /
     fitLinear[ii]->Draw("SAME");
   gr3->Draw("*SAME");    
   tex->SetTextColor(kGreen-3);
-  tex->DrawTextNDC(0.15,0.8,Form("%.1f (%.1f)",linearMean,linearStd));
+  tex->DrawTextNDC(0.15,0.8,Form("%.2f (%.2f)",linearMean,linearStd));
   main1->SaveAs( Form("%s_Figs.pdf",outfilestring.Data()), "pdf" );
   
+  /*
   TCanvas *main3 = new TCanvas();
   //main3->SetLogy(1);
   gr0->Draw("A*");
@@ -478,9 +485,10 @@ int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1128.csv", /
   lin->DrawLine(straightMean+straightStd,0,straightMean+straightStd,max0);
   tex->DrawLatex(straightMean,0.90*max0,Form("%.1f #pm %.1f",straightMean,straightStd));
   main3->SaveAs( Form("%s_Figs.pdf",outfilestring.Data()), "pdf" );
-  main3->SaveAs( Form("%s_Figs.pdf]",outfilestring.Data()), "pdf" );
+  */
+  main1->SaveAs( Form("%s_Figs.pdf]",outfilestring.Data()), "pdf" );
   ///////
-  
+
   ///// Saving fit data
   ofstream fout( Form("%s_Fits.txt",outfilestring.Data()) );
   fout << file.Data() << " ";

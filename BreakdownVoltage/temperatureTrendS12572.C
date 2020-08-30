@@ -1,3 +1,59 @@
+const int MAX = 10000;
+double xT[MAX], yR[MAX];
+int nT;
+
+void loadTemperatureTables() {
+  std::ifstream fin( "outputfiles/KT103J2.csv" );
+  std::string line;
+  nT=0;
+  for(;;nT++) {
+    if(!std::getline(fin,line)) break;
+    if(nT>MAX) break;
+    TString rline = line;
+    TObjArray *lst = rline.Tokenize(",");
+    xT[nT] =  ((TObjString*) lst->At(0))->GetString().Atof();
+    yR[nT] =  ((TObjString*) lst->At(1))->GetString().Atof();
+    //std::cout << xT[n] << " " << yR[n] << std::endl;                                                                          
+  }
+  std::cout << "I found " << nT << " calibration points." << std::endl;
+  if(nT<10) {
+    exit(0);
+  }
+}
+
+double mintemp(double temp) {
+  for(int i=0; i!=nT; ++i) {
+    if(yR[i]<temp) {
+      //std::cout << yR[i] << std::endl;
+      return xT[i];
+    }
+  }
+  return -999;
+}
+
+void readtemperature(TString file,
+		     double &center, double &error) {
+  vector<double> resist;
+  std::ifstream fin( Form("outputfiles/%s",file.Data()) );
+  std::string line;
+  for(;;) {
+    if(!std::getline(fin,line)) break;
+    TString rline = line;
+    TObjArray *lst = rline.Tokenize(",");
+    resist.push_back( ((TObjString*) lst->At(1))->GetString().Atof() );
+  }
+  std::cout << "I read " << resist.size() << " values of temperature " << std::endl;
+  sort( resist.begin(), resist.end() );
+  double temp1 = resist[0];
+  double temp2 = resist[resist.size()-1];
+  std::cout << "First value " << temp1 << " last value " << temp2 << std::endl;
+  double min = mintemp( temp1 );
+  double max = mintemp( temp2 );
+  center = 0.5*(min+max);
+  error = 0.5*(max-min);
+  std::cout << "Temperature range " << min << ", " << max << std::endl;
+}
+
 void readfile(TString file,
 	      double &landauMean,   double &landauStd,
 	      double &straightMean, double &straightStd,
@@ -18,6 +74,7 @@ void readfile(TString file,
 }
 
 int temperatureTrendS12572() {
+  loadTemperatureTables();
   double xD[100], exD[100];
   double xL[100], exL[100];
   double yLandauMeanL[100];
@@ -30,288 +87,113 @@ int temperatureTrendS12572() {
   double yLinearStdD[100];
   double tmp;
 
-  int nL=0;
+
+  //dark
   int nD=0;
-
-  /////////////////
-  // -30 C;
-  /////////////////
-
-  //dark
-  xD[nD] = 0.5*(-29.30 -28.90);
-  exD[nD] = 0.5*(+29.30 -28.90);
-  readfile("20200815_n30C/dark/HDR2-2-n30C-dark-1.csv",
-	   yLandauMeanD[nD], yLandauStdD[nD],
-	   tmp, tmp,
-	   yLinearMeanD[nD], yLinearStdD[nD]);
+  readtemperature("20200821_S12572/n30C/dark/S12572-n30C-dark-1-temp.csv",xD[nD],exD[nD]);
+  readfile("20200821_S12572/n30C/dark/S12572-n30C-dark-1.csv", yLandauMeanD[nD], yLandauStdD[nD], tmp, tmp, yLinearMeanD[nD], yLinearStdD[nD]);
   nD++;
-  xD[nD] = 0.5*(-29.75 -29.35);
-  exD[nD] = 0.5*(+29.75 -39.35);
-  readfile("20200815_n30C/dark/HDR2-2-n30C-dark-2.csv",
-	   yLandauMeanD[nD], yLandauStdD[nD],
-	   tmp, tmp,
-	   yLinearMeanD[nD], yLinearStdD[nD]);
+  //readtemperature("20200821_S12572/n30C/dark/S12572-n30C-dark-2-temp.csv",xD[nD],exD[nD]);
+  //readfile("20200821_S12572/n30C/dark/S12572-n30C-dark-2.csv", yLandauMeanD[nD], yLandauStdD[nD], tmp, tmp, yLinearMeanD[nD], yLinearStdD[nD]);
+  //nD++;
+  //
+  //readtemperature("20200821_S12572/n20C/dark/S12572-n20C-dark-1-temp.csv",xD[nD],exD[nD]);
+  //readfile("20200821_S12572/n20C/dark/S12572-n20C-dark-1.csv", yLandauMeanD[nD], yLandauStdD[nD], tmp, tmp, yLinearMeanD[nD], yLinearStdD[nD]);
+  //nD++;
+  //readtemperature("20200821_S12572/n20C/dark/S12572-n20C-dark-2-temp.csv",xD[nD],exD[nD]);
+  //readfile("20200821_S12572/n20C/dark/S12572-n20C-dark-2.csv", yLandauMeanD[nD], yLandauStdD[nD], tmp, tmp, yLinearMeanD[nD], yLinearStdD[nD]);
+  //nD++;
+  //
+  //readtemperature("20200821_S12572/n10C/dark/S12572-n10C-dark-1-temp.csv",xD[nD],exD[nD]);
+  //readfile("20200821_S12572/n10C/dark/S12572-n10C-dark-1.csv", yLandauMeanD[nD], yLandauStdD[nD], tmp, tmp, yLinearMeanD[nD], yLinearStdD[nD]);
+  //nD++;
+  //readtemperature("20200821_S12572/n10C/dark/S12572-n10C-dark-2-temp.csv",xD[nD],exD[nD]);
+  //readfile("20200821_S12572/n10C/dark/S12572-n10C-dark-2.csv", yLandauMeanD[nD], yLandauStdD[nD], tmp, tmp, yLinearMeanD[nD], yLinearStdD[nD]);
+  //nD++;
+  //
+  //readtemperature("20200821_S12572/zeroC/dark/S12572-0C-1.csv",xD[nD],exD[nD]);
+  //readfile("20200821_S12572/zeroC/dark/S12572-0C-dark-1.csv", yLandauMeanD[nD], yLandauStdD[nD], tmp, tmp, yLinearMeanD[nD], yLinearStdD[nD]);
+  //nD++;
+  //readtemperature("20200821_S12572/zeroC/dark/S12572-0C-2.csv",xD[nD],exD[nD]);
+  //readfile("20200821_S12572/zeroC/dark/S12572-0C-dark-2.csv", yLandauMeanD[nD], yLandauStdD[nD], tmp, tmp, yLinearMeanD[nD], yLinearStdD[nD]);
+  //nD++;
+  //
+  readtemperature("20200821_S12572/p10C/dark/dark-1.csv",xD[nD],exD[nD]);
+  readfile("20200821_S12572/p10C/dark/S12572-10C-dark-1.csv", yLandauMeanD[nD], yLandauStdD[nD], tmp, tmp, yLinearMeanD[nD], yLinearStdD[nD]);
   nD++;
-  xD[nD] = 0.5*(-30.55 -30.05);
-  exD[nD] = 0.5*(+30.55 -30.05);
-  readfile("20200815_n30C/dark/HDR2-2-n30C-dark-3.csv",
-	   yLandauMeanD[nD], yLandauStdD[nD],
-	   tmp, tmp,
-	   yLinearMeanD[nD], yLinearStdD[nD]);
+  readtemperature("20200821_S12572/p10C/dark/dark-2.csv",xD[nD],exD[nD]);
+  readfile("20200821_S12572/p10C/dark/S12572-10C-dark-2.csv", yLandauMeanD[nD], yLandauStdD[nD], tmp, tmp, yLinearMeanD[nD], yLinearStdD[nD]);
   nD++;
-  //light
-  xL[nL] = 0.5*(-30.75 -30.55);
-  exL[nL] = 0.5*(+30.75 -30.55);
-  readfile("20200815_n30C/light/HDR2-2-n30C-5.9mA-Orange-1.csv",
-	   yLandauMeanL[nL], yLandauStdL[nL],
-	   tmp, tmp,
-	   yLinearMeanL[nL], yLinearStdL[nL]);
-  nL++;
-  xL[nL] = 0.5*(-30.60 -30.40);
-  exL[nL] = 0.5*(+30.60 -30.40);
-  readfile("20200815_n30C/light/HDR2-2-n30C-5.9mA-Orange-2.csv",
-	   yLandauMeanL[nL], yLandauStdL[nL],
-	   tmp, tmp,
-	   yLinearMeanL[nL], yLinearStdL[nL]);
-  nL++;
-  xL[nL] = 0.5*(-30.35 -30.05);
-  exL[nL] = 0.5*(+30.35 -30.05);
-  readfile("20200815_n30C/light/HDR2-2-n30C-5.9mA-Orange-3.csv",
-	   yLandauMeanL[nL], yLandauStdL[nL],
-	   tmp, tmp,
-	   yLinearMeanL[nL], yLinearStdL[nL]);
-  nL++;
-
-  /////////////////
-  // -20 C;
-  /////////////////
-
-  //dark
-  xD[nD] = 0.5*(-19.55 -19.40);
-  exD[nD] = 0.5*(+19.55 -19.40);
-  readfile("20200815_n20C/dark/HDR2-2-n20C-dark-1.csv",
-	   yLandauMeanD[nD], yLandauStdD[nD],
-	   tmp, tmp,
-	   yLinearMeanD[nD], yLinearStdD[nD]);
+  readtemperature("20200821_S12572/p10C/dark/8.5C-dark.csv",xD[nD],exD[nD]);
+  readfile("20200821_S12572/p10C/dark/S12572-8.5C-dark-1.csv", yLandauMeanD[nD], yLandauStdD[nD], tmp, tmp, yLinearMeanD[nD], yLinearStdD[nD]);
   nD++;
-  xD[nD] = 0.5*(-20.80 -20.60);
-  exD[nD] = 0.5*(+20.80 -20.60);
-  readfile("20200815_n20C/dark/HDR2-2-n20C-dark-2.csv",
-	   yLandauMeanD[nD], yLandauStdD[nD],
-	   tmp, tmp,
-	   yLinearMeanD[nD], yLinearStdD[nD]);
+  //
+  readtemperature("20200821_S12572/p22C/dark/22C-1.csv",xD[nD],exD[nD]);
+  readfile("20200821_S12572/p22C/dark/S12572-22C-dark-1.csv", yLandauMeanD[nD], yLandauStdD[nD], tmp, tmp, yLinearMeanD[nD], yLinearStdD[nD]);
   nD++;
-  xD[nD] = 0.5*(-20.80 -20.65);
-  exD[nD] = 0.5*(+20.80 -20.65);
-  readfile("20200815_n20C/dark/HDR2-2-n20C-dark-3.csv",
-	   yLandauMeanD[nD], yLandauStdD[nD],
-	   tmp, tmp,
-	   yLinearMeanD[nD], yLinearStdD[nD]);
+  readtemperature("20200821_S12572/p22C/dark/22C-2.csv",xD[nD],exD[nD]);
+  readfile("20200821_S12572/p22C/dark/S12572-22C-dark-2.csv", yLandauMeanD[nD], yLandauStdD[nD], tmp, tmp, yLinearMeanD[nD], yLinearStdD[nD]);
   nD++;
-  //light
-  xL[nL] = 0.5*(-19.95 -19.50);
-  exL[nL] = 0.5*(+19.95 -19.50);
-  readfile("20200815_n20C/light/HDR2-2-n20C-6.5mA-Orange-1.csv",
-	   yLandauMeanL[nL], yLandauStdL[nL],
-	   tmp, tmp,
-	   yLinearMeanL[nL], yLinearStdL[nL]);
-  nL++;
-  xL[nL] = 0.5*(-19.55 -19.35);
-  exL[nL] = 0.5*(+19.55 -19.35);
-  readfile("20200815_n20C/light/HDR2-2-n20C-6.5mA-Orange-2.csv",
-	   yLandauMeanL[nL], yLandauStdL[nL],
-	   tmp, tmp,
-	   yLinearMeanL[nL], yLinearStdL[nL]);
-  nL++;
-  xL[nL] = 0.5*(-19.55 -19.40);
-  exL[nL] = 0.5*(+19.55 -19.40);
-  readfile("20200815_n20C/light/HDR2-2-n20C-6.5mA-Orange-3.csv",
-	   yLandauMeanL[nL], yLandauStdL[nL],
-	   tmp, tmp,
-	   yLinearMeanL[nL], yLinearStdL[nL]);
-  nL++;
-
-  /////////////////
-  // -10 C;
-  /////////////////
-
-  //dark
-  xD[nD] = 0.5*(-10.30 -10.05);
-  exD[nD] = 0.5*(+10.30 -10.05);
-  readfile("20200815_n10C/dark/HDR2-2-n10C-dark-1.csv",
-	   yLandauMeanD[nD], yLandauStdD[nD],
-	   tmp, tmp,
-	   yLinearMeanD[nD], yLinearStdD[nD]);
-  nD++;
-  xD[nD] = 0.5*(-9.45 -9.30);
-  exD[nD] = 0.5*(+9.45 -9.30);
-  readfile("20200815_n10C/dark/HDR2-2-n10C-dark-2.csv",
-	   yLandauMeanD[nD], yLandauStdD[nD],
-	   tmp, tmp,
-	   yLinearMeanD[nD], yLinearStdD[nD]);
-  nD++;
-  xD[nD] = 0.5*(-9.95 -9.20);
-  exD[nD] = 0.5*(+9.95 -9.20);
-  readfile("20200815_n10C/dark/HDR2-2-n10C-dark-3.csv",
-	   yLandauMeanD[nD], yLandauStdD[nD],
-	   tmp, tmp,
-	   yLinearMeanD[nD], yLinearStdD[nD]);
-  nD++;
-  //light
-  xL[nL] = 0.5*(-10.70 -10.60);
-  exL[nL] = 0.5*(+10.70 -10.60);
-  readfile("20200815_n10C/light/HDR2-2-n10C-7mA-Orange-1.csv",
-	   yLandauMeanL[nL], yLandauStdL[nL],
-	   tmp, tmp,
-	   yLinearMeanL[nL], yLinearStdL[nL]);
-  nL++;
-  xL[nL] = 0.5*(-10.50 -10.35);
-  exL[nL] = 0.5*(+10.50 -10.35);
-  readfile("20200815_n10C/light/HDR2-2-n10C-7mA-Orange-2.csv",
-	   yLandauMeanL[nL], yLandauStdL[nL],
-	   tmp, tmp,
-	   yLinearMeanL[nL], yLinearStdL[nL]);
-  nL++;
-  xL[nL] = 0.5*(-10.40 -10.05);
-  exL[nL] = 0.5*(+10.40 -10.05);
-  readfile("20200815_n10C/light/HDR2-2-n10C-7mA-Orange-3.csv",
-	   yLandauMeanL[nL], yLandauStdL[nL],
-	   tmp, tmp,
-	   yLinearMeanL[nL], yLinearStdL[nL]);
-  nL++;
-
-  /////////////////
-  // zero C;
-  /////////////////
-
-  //dark
-  xD[nD] = 0.5*(0.35 +0.95);
-  exD[nD] = 0.5*(-0.35 +0.95);
-  readfile("20200815_zeroC/dark/HDR2-2-0C-dark-1.csv",
-	   yLandauMeanD[nD], yLandauStdD[nD],
-	   tmp, tmp,
-	   yLinearMeanD[nD], yLinearStdD[nD]);
-  nD++;
-  xD[nD] = 0.5*(-0.35 -0.10);
-  exD[nD] = 0.5*(+0.35 -0.10);
-  readfile("20200815_zeroC/dark/HDR2-2-0C-dark-2.csv",
-	   yLandauMeanD[nD], yLandauStdD[nD],
-	   tmp, tmp,
-	   yLinearMeanD[nD], yLinearStdD[nD]);
-  nD++;
-  xD[nD] = 0.5*(-0.35 -0.30);
-  exD[nD] = 0.5*(+0.35 -0.30);
-  readfile("20200815_zeroC/dark/HDR2-2-0C-dark-3.csv",
-	   yLandauMeanD[nD], yLandauStdD[nD],
-	   tmp, tmp,
-	   yLinearMeanD[nD], yLinearStdD[nD]);
-  nD++;
-  //light
-  xD[nL] = 0.5*(-1.10 -1.30);
-  exD[nL] = 0.5*(+1.10 -1.30);
-  readfile("20200815_zeroC/light/HDR2-2-0C-7.8mA-Orange-1.csv",
-	   yLandauMeanL[nL], yLandauStdL[nL],
-	   tmp, tmp,
-	   yLinearMeanL[nL], yLinearStdL[nL]);
-  nL++;
-  xL[nL] = 0.5*(-0.45 -0.80);
-  exL[nL] = 0.5*(+0.45 -0.80);
-  readfile("20200815_zeroC/light/HDR2-2-0C-7.8mA-Orange-2.csv",
-	   yLandauMeanL[nL], yLandauStdL[nL],
-	   tmp, tmp,
-	   yLinearMeanL[nL], yLinearStdL[nL]);
-  nL++;
-  xL[nL] = 0.5*(-0.10 -0.25);
-  exL[nL] = 0.5*(+0.10 -0.25);
-  readfile("20200815_zeroC/light/HDR2-2-0C-7.8mA-Orange-3.csv",
-	   yLandauMeanL[nL], yLandauStdL[nL],
-	   tmp, tmp,
-	   yLinearMeanL[nL], yLinearStdL[nL]);
-  nL++;
-
-  /////////////////
-  // +10 C;
-  /////////////////
-
-  //dark
-  xD[nD] = 0.5*(+10.15 +10.60);
-  exD[nD] = 0.5*(-10.15 +10.60);
-  readfile("20200815_p10C/HDR2-2-10C-dark.csv",
-	   yLandauMeanD[nD], yLandauStdD[nD],
-	   tmp, tmp,
-	   yLinearMeanD[nD], yLinearStdD[nD]);
-  nD++;
-  xD[nD] = 0.5*(+10.15 +10.60);
-  exD[nD] = 0.5*(-10.15 +10.60);
-  readfile("20200815_p10C/HDR2-2-10C-dark-2.csv",
-	   yLandauMeanD[nD], yLandauStdD[nD],
-	   tmp, tmp,
-	   yLinearMeanD[nD], yLinearStdD[nD]);
-  nD++;
-
-  //light
-
-  xL[nL] = 0.5*(+10.05 +10.25);
-  exL[nL] = 0.5*(-10.05 +10.25);
-  readfile("20200815_p10C/HDR2-2-10C-10mA-Orange.csv",
-	   yLandauMeanL[nL], yLandauStdL[nL],
-	   tmp, tmp,
-	   yLinearMeanL[nL], yLinearStdL[nL]);
-  nL++;
-  xL[nL] = 0.5*(+10.05 +10.25);
-  exL[nL] = 0.5*(-10.05 +10.25);
-  readfile("20200815_p10C/HDR2-2-10C-10mA-Orange-2.csv",
-	   yLandauMeanL[nL], yLandauStdL[nL],
-	   tmp, tmp,
-	   yLinearMeanL[nL], yLinearStdL[nL]);
-  nL++;
-
-  xL[nL] = 0.5*(+10.05 +10.25);
-  exL[nL] = 0.5*(-10.05 +10.25);
-  readfile("20200815_p10C/HDR2-2-10C-10mA-Orange-3.csv",
-	   yLandauMeanL[nL], yLandauStdL[nL],
-	   tmp, tmp,
-	   yLinearMeanL[nL], yLinearStdL[nL]);
-  nL++;
-
-  /////////////////
-  // +20 C;
-  /////////////////
   
-  //dark
-  xD[nD] = 0.5*(+20.65 +20.70);
-  exD[nD] = 0.5*(-20.65 +20.70);
-  readfile("20200815_p20C/dark/HDR2-2-20C-_Chdirect_iLED-1-20200813-1406.csv",
-	   yLandauMeanD[nD], yLandauStdD[nD],
-	   tmp, tmp,
-	   yLinearMeanD[nD], yLinearStdD[nD]);
-  nD++;
-  xD[nD] = 0.5*(+20.65 +20.70);
-  exD[nD] = 0.5*(-20.65 +20.70);
-  readfile("20200815_p20C/dark/HDR2-2-20C-_Chdirect_iLED-1-20200813-1408.csv",
-	   yLandauMeanD[nD], yLandauStdD[nD],
-	   tmp, tmp,
-	   yLinearMeanD[nD], yLinearStdD[nD]);
-  nD++;
 
+  
   //light
-  xL[nL] = 0.5*(+20.90 +21.15);
-  exL[nL] = 0.5*(-20.90 +21.15);
-  readfile("20200815_p20C/light/HDR2-2-20C-10mA-Orange.csv",
-	   yLandauMeanL[nL], yLandauStdL[nL],
-	   tmp, tmp,
-	   yLinearMeanL[nL], yLinearStdL[nL]);
+  int nL=0;
+  readtemperature("20200821_S12572/n30C/light/S12572-n30C-light-1-temp.csv",xL[nL],exL[nL]);
+  readfile("20200821_S12572/n30C/light/S12572-n30C-5.0mA-Orange-1.csv", yLandauMeanL[nL], yLandauStdL[nL], tmp, tmp, yLinearMeanL[nL], yLinearStdL[nL]);
   nL++;
-  xL[nL] = 0.5*(+20.90 +21.15);
-  exL[nL] = 0.5*(-20.90 +21.15);
-  readfile("20200815_p20C/light/HDR2-2-20C-10mA-Orange-2.csv",
-	   yLandauMeanL[nL], yLandauStdL[nL],
-	   tmp, tmp,
-	   yLinearMeanL[nL], yLinearStdL[nL]);
-  nL++;  
+  readtemperature("20200821_S12572/n30C/light/S12572-n30C-light-2-temp.csv",xL[nL],exL[nL]);
+  readfile("20200821_S12572/n30C/light/S12572-n30C-5.0mA-Orange-2.csv", yLandauMeanL[nL], yLandauStdL[nL], tmp, tmp, yLinearMeanL[nL], yLinearStdL[nL]);
+  nL++;
+  //
+  readtemperature("20200821_S12572/n20C/light/S12572-n20C-light-1-temp.csv",xL[nL],exL[nL]);
+  readfile("20200821_S12572/n20C/light/S12572-n20C-5.5mA-Orange-1.csv", yLandauMeanL[nL], yLandauStdL[nL], tmp, tmp, yLinearMeanL[nL], yLinearStdL[nL]);
+  nL++;
+  readtemperature("20200821_S12572/n20C/light/S12572-n20C-light-2-temp.csv",xL[nL],exL[nL]);
+  readfile("20200821_S12572/n20C/light/S12572-n20C-5.5mA-Orange-2.csv", yLandauMeanL[nL], yLandauStdL[nL], tmp, tmp, yLinearMeanL[nL], yLinearStdL[nL]);
+  nL++;
+  //
+  readtemperature("20200821_S12572/n10C/light/S12572-n10C-light-1-temp.csv",xL[nL],exL[nL]);
+  readfile("20200821_S12572/n10C/light/S12572-n10C-6.05mA-Orange-1.csv", yLandauMeanL[nL], yLandauStdL[nL], tmp, tmp, yLinearMeanL[nL], yLinearStdL[nL]);
+  nL++;
+  readtemperature("20200821_S12572/n10C/light/S12572-n10C-light-2-temp.csv",xL[nL],exL[nL]);
+  readfile("20200821_S12572/n10C/light/S12572-n10C-6.05mA-Orange-2.csv", yLandauMeanL[nL], yLandauStdL[nL], tmp, tmp, yLinearMeanL[nL], yLinearStdL[nL]);
+  nL++;
+  //
+  readtemperature("20200821_S12572/zeroC/light/S12572-0C-orange-1.csv",xL[nL],exL[nL]);
+  readfile("20200821_S12572/zeroC/light/S12572-0C-6.7mA-Orange-1.csv", yLandauMeanL[nL], yLandauStdL[nL], tmp, tmp, yLinearMeanL[nL], yLinearStdL[nL]);
+  nL++;
+  readtemperature("20200821_S12572/zeroC/light/S12572-0C-orange-2.csv",xL[nL],exL[nL]);
+  readfile("20200821_S12572/zeroC/light/S12572-0C-6.7mA-Orange-2.csv", yLandauMeanL[nL], yLandauStdL[nL], tmp, tmp, yLinearMeanL[nL], yLinearStdL[nL]);
+  nL++;
+  //
+  readtemperature("20200821_S12572/p10C/light/8.5C-1.csv",xL[nL],exL[nL]);
+  readfile("20200821_S12572/p10C/light/S12572-8.5C-7.3mA-Orange-1.csv", yLandauMeanL[nL], yLandauStdL[nL], tmp, tmp, yLinearMeanL[nL], yLinearStdL[nL]);
+  nL++;
+  readtemperature("20200821_S12572/p10C/light/8.5C-2.csv",xL[nL],exL[nL]);
+  readfile("20200821_S12572/p10C/light/S12572-8.5C-7.3mA-Orange-2.csv", yLandauMeanL[nL], yLandauStdL[nL], tmp, tmp, yLinearMeanL[nL], yLinearStdL[nL]);
+  nL++;
+  readtemperature("20200821_S12572/p10C/light/10C-1.csv",xL[nL],exL[nL]);
+  readfile("20200821_S12572/p10C/light/S12572-10C-8.6mA-Orange-1.csv", yLandauMeanL[nL], yLandauStdL[nL], tmp, tmp, yLinearMeanL[nL], yLinearStdL[nL]);
+  nL++;
+  //
+  //readtemperature("20200821_S12572/p22C/light/22C-1.csv",xL[nL],exL[nL]);
+  //readfile("20200821_S12572/p22C/light/S12572-22C-8.6mA-Orange-1.csv", yLandauMeanL[nL], yLandauStdL[nL], tmp, tmp, yLinearMeanL[nL], yLinearStdL[nL]);
+  //nL++;
+  readtemperature("20200821_S12572/p22C/light/22C-2.csv",xL[nL],exL[nL]);
+  readfile("20200821_S12572/p22C/light/S12572-22C-8.6mA-Orange-2.csv", yLandauMeanL[nL], yLandauStdL[nL], tmp, tmp, yLinearMeanL[nL], yLinearStdL[nL]);
+  nL++;
+  //
+  
+  //////////////////////////
+  //////////////////////////
+  //////////////////////////
+  //////////////////////////
+  //////////////////////////
+
   
   gStyle->SetOptStat(0);
-  TH2D *axis = new TH2D("axis",";Degrees;V_{br}",100,-34,+24,100,36,40.5);
+  TH2D *axis = new TH2D("axis",";Degrees;V_{br}",100,-34,+24,100,62,68);
   axis->GetYaxis()->SetNdivisions(509);
   axis->Draw();
   
@@ -329,14 +211,14 @@ int temperatureTrendS12572() {
   grLandauD->SetLineColor( kCyan-3 );
   grLandauD->SetMarkerStyle( 20 );
   grLandauD->Draw("PSAME");
-  grLandauD->Fit(fit1);
+  grLandauD->Fit(fit1,"WW");
   
   TGraphErrors *grLinearD = new TGraphErrors(nD, xD, yLinearMeanD, exD, yLinearStdD);
   grLinearD->SetMarkerColor( kGreen-3 );
   grLinearD->SetLineColor( kGreen-3 );
   grLinearD->SetMarkerStyle( 21 );
   grLinearD->Draw("PSAME");
-  grLinearD->Fit(fit2);
+  grLinearD->Fit(fit2,"WW");
 
   TGraphErrors *grLandauL = new TGraphErrors(nL, xL, yLandauMeanL, exL, yLandauStdL);
   grLandauL->SetMarkerColor( kOrange-3 );
@@ -352,7 +234,14 @@ int temperatureTrendS12572() {
   grLinearL->Draw("PSAME");
   grLinearL->Fit(fit4,"WW");
 
-  TLegend *leg = new TLegend(0.14,0.67,0.47,0.86);
+  double nx[1] = {23.5};
+  double ny[1] = {38.4};
+  double enx[1] = {0};
+  double eny[1] = {0.1};
+  TGraphErrors *nominal = new TGraphErrors(1,nx,ny,enx,eny);
+  nominal->Draw("*SAME");
+  
+  TLegend *leg = new TLegend(0.51,0.16,0.84,0.35);
   leg->AddEntry(grLandauD,Form("DARK:: Max dLnI/dV: %.0f mV/deg",fit1->GetParameter(1)*1e3));
   leg->AddEntry(grLinearD,Form("DARK:: Xing sqrtI: %.0f mV/deg",fit2->GetParameter(1)*1e3));
   leg->AddEntry(grLandauL,Form("LED:: Max dLnI/dV: %.0f mV/deg",fit3->GetParameter(1)*1e3));

@@ -309,6 +309,8 @@ int temperatureTrendNewSiPM2() {
 	   tmp, tmp,
 	   yLinearMeanL[nL], yLinearStdL[nL]);
   nL++;  
+
+  TCanvas *main = new TCanvas();
   
   gStyle->SetOptStat(0);
   TH2D *axis = new TH2D("axis",";Degrees;V_{br}",100,-34,+24,100,36,40.5);
@@ -359,12 +361,14 @@ int temperatureTrendNewSiPM2() {
   TGraphErrors *nominal = new TGraphErrors(1,nx,ny,enx,eny);
   nominal->Draw("*SAME");
   
-  TLegend *leg = new TLegend(0.14,0.67,0.47,0.86);
+  TLegend *leg = new TLegend(0.14,0.67,0.47,0.86,"HRD2-New2");
   leg->AddEntry(grLandauD,Form("DARK:: Max dLnI/dV: %.0f mV/deg",fit1->GetParameter(1)*1e3));
   leg->AddEntry(grLinearD,Form("DARK:: Xing sqrtI: %.0f mV/deg",fit2->GetParameter(1)*1e3));
   leg->AddEntry(grLandauL,Form("LED:: Max dLnI/dV: %.0f mV/deg",fit3->GetParameter(1)*1e3));
   leg->AddEntry(grLinearL,Form("LED:: Xing sqrtI: %.0f mV/deg",fit4->GetParameter(1)*1e3));
   leg->Draw();
+
+  main->SaveAs("temperatureTrendHDR2-2.pdf","PDF");
   
   return 0;
 }

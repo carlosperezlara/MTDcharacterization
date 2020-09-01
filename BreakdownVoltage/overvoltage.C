@@ -71,6 +71,11 @@ int overvoltage(TString file="20200826_HDR2-2e14/n30C/dark/HDR2-2e14-n30C-dark-1
   tex->SetTextSize(0.03);
   tex->DrawTextNDC(0.12,0.85,Form("%s",file.Data()));
   tex->SetTextSize(0.05);
+  for(int i=0; i!=nov; ++i) {
+    cout << "===> " << overV[i] << endl;
+    //lin->DrawLine( overV[i], 0, overV[i], 1e6 );
+    lin->DrawLine( overV[i], 0, overV[i], 1 );
+  }
   main->SaveAs( Form("%s_OverVoltage.pdf",outfilestring.Data()), "pdf" );
 
   // Saving data

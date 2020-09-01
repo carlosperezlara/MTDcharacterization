@@ -400,7 +400,8 @@ int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1128.csv", /
   TCanvas *main = new TCanvas();
   main->SaveAs( Form("%s_Figs.pdf[",outfilestring.Data()), "pdf" );
   main->cd()->SetLogy(1);
-  TH2D *axis0 = new TH2D("axis0","IV-curve;Bias (V);I  (nA)",100,0, volt[n-1]+2,10000,min0,max0);
+  //TH2D *axis0 = new TH2D("axis0","IV-curve;Bias (V);I  (nA)",100,0, volt[n-1]+2,10000,min0,max0);
+  TH2D *axis0 = new TH2D("axis0","IV-curve;Bias (V);I  (nA)",100,0, volt[n-1]+2,10000,0.1,max0);
   axis0->Draw("");
   gr0->Draw("*SAME");
   gr0->SetMarkerColor(kGreen-3);

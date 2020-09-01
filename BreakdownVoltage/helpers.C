@@ -76,6 +76,7 @@ void readovervoltagefile(TString file,
     if(i==n) {
       voltage = volt;
       current = curr;
+      break;
     }
   }
   fin.close();
@@ -109,5 +110,15 @@ double readtemperaturetrend(TString file, double temp, int index=3) {
   }
   fin.close();
   return p0+p1*temp;
+}
+
+void readtemperaturetrendCoef(TString file, double &p0, double &p1, int index=3) {
+  ifstream fin( Form("outputfiles/%s",file.Data()));
+  for(int i=0; i!=4; ++i) {
+    fin >> p0  >> p1;
+    if(i==index) break;
+  }
+  fin.close();
+  return;
 }
 

@@ -44,7 +44,7 @@ int temperatureInterceps(TString file="20200826_HDR2-2e14/n30C/dark/HDR2-2e14-n3
   axis0->Draw("");
   gr0->Draw("PSAME");
   gr0->Fit(fit);
-  tex->DrawLatex(1e14,36.5,Form("%.1f  V / Rad",fit->GetParameter(1)*1e15));
+  tex->DrawLatex(1e14,36.5,Form("%.1f  mV / 10^{12} Rad",fit->GetParameter(1)*1e3*1e12));
   main->cd(2);
   axis1->Draw("");
   gr1->Draw("PSAME");

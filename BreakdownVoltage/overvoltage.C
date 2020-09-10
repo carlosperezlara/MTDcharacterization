@@ -43,7 +43,7 @@ int overvoltage(TString file="20200826_HDR2-2e14/n30C/dark/HDR2-2e14-n30C-dark-1
   double overV[100];
   int nov;
   for(nov=0; nov!=100; ++nov) {
-    overV[nov] = bvoltage + nov*0.5;
+    overV[nov] = bvoltage + nov*0.1;
     if(overV[nov] > volt[n-1]) break;
   }
 

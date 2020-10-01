@@ -336,27 +336,36 @@ int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1128.csv", /
   //exit(0);
   
   // third: estimating crossing point with zero from sqrt(I)
-  //
-  // stablishing xmin3 at (inflection point -0.2) and making sure it is at least 6 points below limit
+  // Note: this method is tricky as it depends strongly on the minimum Vbias used in the fit.
+  // a totally arvitrary range is chosen here after having looked at all of the data
+  // it seems to be that the amount of leakage current is non-negligible specially for the irradiated
+  // SiPM but also is relatively strong in the nonirradiated ones.
+  // The choice (whether good or not) is to use the Vbdwn found by the inflection point as the right limit
+  // in the range and use as left limit the Voltage that correspond to 30% of the difference between the Sqrt{i}
+  // at BreakdownInflection (Vbdwn1) and the Sqrt{I} of the Voltage that correspond to (Vbdwn1 - 1 Volt) assuming
+  // that at the later Vbias we are below the real Vdown voltage.
   int xini3, xend3;
-  xini3 = findLowEdge(landauMean-0.2,volt1,nn-2);
-  if(nn-2-xini3<6) xini3 = nn-2-6;
-  // stablishing xend3 at (inflection point +2.0) and making sure it is at least 6 points below limit
-  xend3 = findLowEdge(landauMean+2.0,volt1,nn-2);
-  if(nn-2-xend3<6) xend3 = nn-2-6;
-  std::cout << " xini3 " << xini3 << ": " << volt1[xini3] << " xend3 " << xend3 << ": " << volt1[xend3] << std::endl;
+  xini3 = findLowEdge(landauMean-1.0,volt0,nn); // index at 1V below Vdwn1
+  xend3 = findLowEdge(landauMean,volt0,nn);
+  float upperY = sqrtc[xend3];
+  float lowerY = sqrtc[xini3];
+  std::cout << " Reference current is " << lowerY+0.3*(upperY-lowerY) << std::endl; 
+  xini3 = findLowEdge( lowerY+0.3*(upperY-lowerY), sqrtc, nn ); // move to our choice
+  xini3--;
+  xend3++;
+  std::cout << " xini3 " << xini3 << ": " << volt0[xini3] << " xend3 " << xend3 << ": " << volt0[xend3] << std::endl;
   //
   TF1 *fitLinear[100];
   int nfit3 = 0;
   sx = sxx = 0;
   int xcent = 0.5*(xini3+xend3);
-  for(int ii=xini3; ii<xcent-2; ++ii) {
-    for(int jj=xend3; jj>xcent+2; --jj) {
+  for(int ii=xini3; ii<xend3-2; ++ii) {
+    for(int jj=ii+1; jj<xend3; ++jj) {
       fitLinear[nfit3] = new TF1(Form("fitLinear%d",nfit3),"[0]+[1]*x", 30/*volt1[ii]*/, volt1[jj]);
       fitLinear[nfit3]->SetLineWidth(1);
       fitLinear[nfit3]->SetLineColor(kGreen-3);
       fitLinear[nfit3]->SetLineStyle(2);
-      gr3->Fit( fitLinear[nfit3], "WWRQS", "", volt1[ii], volt1[jj] );
+      gr3->Fit( fitLinear[nfit3], "WWRQS", "", volt0[ii], volt0[jj] );
       double xxx = fitLinear[nfit3]->GetX(0,30,100);
       if(TMath::IsNaN(xxx)) continue;
       sx += xxx;
@@ -389,7 +398,7 @@ int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1128.csv", /
   floor(xini,xend,curr1,min1);
   peak( xini,xend,curr2,max2);
   floor(xini,xend,curr2,min2);  
-  peak( 0,xend3,sqrtc,max3);
+  peak( 0,xend3+3,sqrtc,max3);
   floor(2,xend3,curr0,min3);
 
   TLine *lin = new TLine();

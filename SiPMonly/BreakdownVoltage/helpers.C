@@ -2,6 +2,30 @@ const int MAX = 10000;
 double xT[MAX], yR[MAX];
 int nT;
 
+int peak(int xstart, int xstop,
+         double y[MAX], double &max) {
+  int ret = -999;
+  max = -999;
+  for(int i=xstart; i<xstop; ++i)
+    if(y[i]>max) {
+      max = y[i];
+      ret = i;
+    }
+  return ret;
+}
+
+int floor(int xstart, int xstop,
+	  double y[MAX], double &min) {
+  double ret = 999;
+  min = 999;
+  for(int i=xstart; i<xstop; ++i)
+    if(y[i]<min) {
+      min = y[i];
+      ret = i;
+    }
+  return ret;
+}
+
 void loadTemperatureTables() {
   std::ifstream fin( "outputfiles/KT103J2.csv" );
   std::string line;
@@ -122,3 +146,26 @@ void readtemperaturetrendCoef(TString file, double &p0, double &p1, int index=3)
   return;
 }
 
+int readfile(TString file, double v[MAX], double c[MAX]) {
+  ///////
+  // my clumsy way of extracting data from a csv file
+  TString outfilestring = Form("outputfiles/%s",file.Data());
+  std::ifstream fin( outfilestring.Data() );
+  std::string line;
+  int n=0;
+  for(;;n++) {
+    if(!std::getline(fin,line)) break;
+    if(n>MAX) break;
+    TString rline = line;
+    TObjArray *lst = rline.Tokenize(",");
+    v[n] =  ((TObjString*) lst->At(0))->GetString().Atof();
+    c[n] =  ((TObjString*) lst->At(1))->GetString().Atof();
+  }
+  std::cout << "From file " << outfilestring.Data() << ". I read " << n << " pairs. My MAX stack was " << MAX << std::endl;
+  return n;
+}
+
+void subtractreference( int n, double v[MAX], double c[MAX], TSpline *sp, double out[MAX] ) {
+  for( int i=0; i!=n; ++i )
+    out[i] = c[i] - sp->Eval( v[i] );
+}

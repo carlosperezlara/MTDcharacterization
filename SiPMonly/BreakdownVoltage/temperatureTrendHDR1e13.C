@@ -115,7 +115,7 @@ int temperatureTrendHDR1e13() {
   TCanvas *main = new TCanvas();
   
   gStyle->SetOptStat(0);
-  TH2D *axis = new TH2D("axis",";Degrees;V_{br}",100,-34,+24,100,36,40.5);
+  TH2D *axis = new TH2D("axis",";Degrees;V_{br}",100,-34,+24,100,36,39.5);
   axis->GetYaxis()->SetNdivisions(509);
   axis->Draw();
   

@@ -2,6 +2,17 @@ const int MAX = 10000;
 double xT[MAX], yR[MAX];
 int nT;
 
+double gainS141601315PS(double x) { // gain as a function of overvoltage valid x = from 3.5 to 6.5 at 25degC
+  //https://www.hamamatsu.com/resources/pdf/ssd/s14160-1310ps_etc_kapd1070e.pdf
+  return -1899.97 + x*82179.6;
+}
+  
+  
+double gainS141601310PS(double x) { // gain as a function of overvoltage valid x = from 3.5 to 7.5 at 25degC
+  //https://www.hamamatsu.com/resources/pdf/ssd/s14160-1310ps_etc_kapd1070e.pdf
+  return -2029.01 + x*35338.7;
+}
+
 int peak(int xstart, int xstop,
          double y[MAX], double &max) {
   int ret = -999;
@@ -136,9 +147,9 @@ double readtemperaturetrend(TString file, double temp, int index=3) {
   return p0+p1*temp;
 }
 
-void readtemperaturetrendCoef(TString file, double &p0, double &p1, int index=3) {
+void readtemperaturetrendCoef(TString file, double &p0, double &p1, int index=0) {
   ifstream fin( Form("outputfiles/%s",file.Data()));
-  for(int i=0; i!=4; ++i) {
+  for(int i=0; i!=2; ++i) {
     fin >> p0  >> p1;
     if(i==index) break;
   }

@@ -300,7 +300,7 @@ int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1128.csv", /
   double landauStd = TMath::Sqrt(sxx*nfit1-sx*sx)/nfit1;
   cout << "* Number of Landau fits " << nfit1 << std::endl;
   cout << "  MPV mean " << landauMean << " error " << landauStd << std::endl;
-
+  //exit(0);
   
   // second: find peak position for second-primed and start range there for straight fit
   TF1 *fitStraight[100];
@@ -353,7 +353,12 @@ int bvfinder(TString file="20200804_20.8C/HDR2-_Ch4_iLED-1-20200804-1128.csv", /
   xini3 = findLowEdge( lowerY+0.3*(upperY-lowerY), sqrtc, nn ); // move to our choice
   xini3--;
   xend3++;
+  //that works pretty well for unsubtracted distributions, for subtracted ones use this
+  xini3 = findLowEdge(landauMean-0.2,volt0,nn); // 200mV
+  xend3 = findLowEdge(landauMean+0.3,volt0,nn); // 300mV
   std::cout << " xini3 " << xini3 << ": " << volt0[xini3] << " xend3 " << xend3 << ": " << volt0[xend3] << std::endl;
+  //exit(0);
+
   //
   TF1 *fitLinear[100];
   int nfit3 = 0;

@@ -90,6 +90,7 @@ int dcr_HDR2_fluence_n30() {
   double currN[NFILES][MAX];
   TGraph *grIV[NFILES];
   TGraph *grDCR[NFILES];
+  TGraph *grDCRscaled[NFILES];
   TSpline *spDCR[NFILES];
   for(int i=0; i!=NFILES; ++i) {
     // read ivcurves
@@ -113,7 +114,7 @@ int dcr_HDR2_fluence_n30() {
   }
 
   TCanvas *main = new TCanvas();
-  double xxx[16] = {0,0,0,0,
+  double xxx[16] = {1,1,1,1,
     1e13,1e13,1e13,1e13,
     5e13,5e13,5e13,5e13,
     2e14,2e14,2e14,2e14
@@ -133,13 +134,21 @@ int dcr_HDR2_fluence_n30() {
       currN[i][j] = (curr[i][j]-fitLeak[i]->Eval(volt[i][j]))/(1.6e-19)/gainenf->Eval( voltD[i][j] ) *1e-9;
     }
     grDCR[i] = new TGraph( n[i], voltD[i], currN[i] );
+    for(int j=0; j!=n[i]; ++j) {
+      currN[i][j] = currN[i][j]*1e+9/xxx[i];
+    }
+    grDCRscaled[i] = new TGraph( n[i], voltD[i], currN[i] );
     if(i%2==0) {
       grDCR[i]->SetMarkerStyle(24);
+      grDCRscaled[i]->SetMarkerStyle(24);
     } else {
       grDCR[i]->SetMarkerStyle(25);
+      grDCRscaled[i]->SetMarkerStyle(25);
     }
     grDCR[i]->SetMarkerColor( col[i/2] );
     grDCR[i]->SetLineWidth(0);
+    grDCRscaled[i]->SetMarkerColor( col[i/2] );
+    grDCRscaled[i]->SetLineWidth(0);
     spDCR[i] = new TSpline3( Form("sp%d",i), grDCR[i]);
   }
 
@@ -167,6 +176,15 @@ int dcr_HDR2_fluence_n30() {
   main->cd()->SetLogy(1);
   //leg1->Draw();
 
+  TCanvas *main2scaled = new TCanvas();
+  main2scaled->SetLogy(1);
+  main2scaled->SetGridx(1);
+  main2scaled->SetGridy(1);
+  TH2D *axis2scaled = new TH2D("axis2",";Overvoltage  (V);Dark Count Rate Over Fluence  (I^{sub}/e/gain/enf)/#Phi    (Hz)",100,0,7,100,1e-5,1e-2);
+  axis2scaled->Draw();
+  for(int i=0; i!=NFILES; ++i)
+    grDCRscaled[i]->Draw("PSAME");
+  
   TCanvas *main3 = new TCanvas();
   //main3->SetLogy(1);
   double yT[4][NFILES];

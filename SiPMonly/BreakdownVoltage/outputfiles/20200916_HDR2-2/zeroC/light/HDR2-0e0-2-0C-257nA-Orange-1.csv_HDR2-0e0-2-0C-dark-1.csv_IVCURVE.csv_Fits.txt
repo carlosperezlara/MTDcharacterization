@@ -1,0 +1,1 @@
+20200916_HDR2-2/zeroC/light/HDR2-0e0-2-0C-257nA-Orange-1.csv_HDR2-0e0-2-0C-dark-1.csv_IVCURVE.csv 37.9195 0.00856414 nan nan 37.6167 0.0724969

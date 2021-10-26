@@ -1,0 +1,1 @@
+MTD-SiPM-5e13-2-neg10C-light.csv_MTD-SiPM-5e13-2-neg10C-dark.csv_IVCURVE.csv 38.0602 0.00483816 nan nan 32.0613 3.57037

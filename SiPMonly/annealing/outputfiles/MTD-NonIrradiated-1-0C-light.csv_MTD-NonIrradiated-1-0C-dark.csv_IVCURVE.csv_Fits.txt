@@ -1,0 +1,1 @@
+MTD-NonIrradiated-1-0C-light.csv_MTD-NonIrradiated-1-0C-dark.csv_IVCURVE.csv 36.979 0.00701048 37.0524 0.182508 36.7318 0.0863392

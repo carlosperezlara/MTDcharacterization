@@ -1,0 +1,1 @@
+MTD-NonIrradiated-2-neg12C-light.csv_MTD-NonIrradiated-2-neg12C-dark.csv_IVCURVE.csv 36.2026 0.00222374 nan nan 33.9972 2.93322

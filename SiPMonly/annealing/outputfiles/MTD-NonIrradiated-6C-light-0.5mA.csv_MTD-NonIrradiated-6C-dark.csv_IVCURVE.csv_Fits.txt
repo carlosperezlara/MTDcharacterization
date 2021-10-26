@@ -1,0 +1,1 @@
+MTD-NonIrradiated-6C-light-0.5mA.csv_MTD-NonIrradiated-6C-dark.csv_IVCURVE.csv 37.1302 0.00280784 37.1415 0.0224287 36.882 0.0895806

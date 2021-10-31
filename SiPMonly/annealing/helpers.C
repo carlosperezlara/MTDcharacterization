@@ -38,7 +38,7 @@ int floor(int xstart, int xstop,
 }
 
 void loadTemperatureTables() {
-  std::ifstream fin( "outputfiles/KT103J2.csv" );
+  std::ifstream fin( "../BreakdownVoltage/outputfiles/KT103J2.csv" );
   std::string line;
   nT=0;
   for(;;nT++) {
@@ -158,8 +158,38 @@ void readfile(TString file,
   }
 }
 
+void readfile_directly(TString file,
+              double &landauMean,   double &landauStd,
+              double &straightMean, double &straightStd,
+              double &linearMean,   double &linearStd
+              ) {
+  ifstream fin( Form("%s_Fits.txt",file.Data()));
+  TString tmp;
+  fin >> tmp;
+  if(tmp==file) {
+    fin >> landauMean   >> landauStd;
+    fin >> straightMean >> straightStd;
+    fin >> linearMean   >> linearStd;
+  } else {
+    std::cout << "Something wrong with this file " << file.Data() << std::endl;
+    std::cout << tmp.Data() << std::endl;
+    exit(0);
+  }
+}
+
 double readtemperaturetrend(TString file, double temp, int index=3) {
   ifstream fin( Form("outputfiles/%s",file.Data()));
+  double p0=0, p1=0;
+  for(int i=0; i!=4; ++i) {
+    fin >> p0  >> p1;
+    if(i==index) break;
+  }
+  fin.close();
+  return p0+p1*temp;
+}
+
+double readtemperaturetrend_directly(TString file, double temp, int index=3) {
+  ifstream fin( Form("%s",file.Data()));
   double p0=0, p1=0;
   for(int i=0; i!=4; ++i) {
     fin >> p0  >> p1;
@@ -183,6 +213,25 @@ int readfile(TString file, double v[MAX], double c[MAX]) {
   ///////
   // my clumsy way of extracting data from a csv file
   TString outfilestring = Form("outputfiles/%s",file.Data());
+  std::ifstream fin( outfilestring.Data() );
+  std::string line;
+  int n=0;
+  for(;;n++) {
+    if(!std::getline(fin,line)) break;
+    if(n>MAX) break;
+    TString rline = line;
+    TObjArray *lst = rline.Tokenize(",");
+    v[n] =  ((TObjString*) lst->At(0))->GetString().Atof();
+    c[n] =  ((TObjString*) lst->At(1))->GetString().Atof();
+  }
+  std::cout << "From file " << outfilestring.Data() << ". I read " << n << " pairs. My MAX stack was " << MAX << std::endl;
+  return n;
+}
+
+int readfile_directly(TString file, double v[MAX], double c[MAX]) {
+  ///////
+  // my clumsy way of extracting data from a csv file
+  TString outfilestring = Form("%s",file.Data());
   std::ifstream fin( outfilestring.Data() );
   std::string line;
   int n=0;

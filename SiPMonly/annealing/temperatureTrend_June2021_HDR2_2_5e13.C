@@ -97,9 +97,9 @@ int temperatureTrend_June2021_HDR2_2_5e13() {  //loadTemperatureTables();
   //leg->AddEntry(nominal,"Manufacturer");
   leg->Draw();
 
-  main->SaveAs("outputfiles/20200915_HDR2-1/temperatureTrend.pdf","PDF");
+  main->SaveAs("input/MTD-5e13/temperatureTrend.pdf","PDF");
 
-  std::ofstream fou( "outputfiles/20200915_HDR2-1/temperatureTrend.txt" );
+  std::ofstream fou( "input/MTD-5e13/temperatureTrend.txt" );
   fou << Form("%e %e",fit5->GetParameter(0), fit5->GetParameter(1)) << std::endl;
   fou << Form("%e %e",fit6->GetParameter(0), fit6->GetParameter(1)) << std::endl;
   
